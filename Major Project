@@ -1,0 +1,45 @@
+#include <SoftwareSerial.h>
+SoftwareSerial gsm(2,3); /// GSM MODEM Tx 2 and Rx to 3
+#include <string.h>
+#define button 8
+#include <Adafruit_Sensor.h>
+#include <DHT.h>
+#include "DHT.h"
+#define DHTPIN 7
+#define motor 9
+#define DHTTYPE DHT11 // DHT 11
+DHT dht(DHTPIN, DHTTYPE);
+int a = 0;
+//////////////////////////////////////////////////////////////////////////////
+void SendSMS(String Data) {
+39
+digitalWrite(13,HIGH);
+gsm.print("AT+CMGF=1\r"); //Because we want to send the SMS in text mode delay(1000);
+gsm.print("AT+CMGS=\"+918688192451\"\r");
+delay(1000);
+gsm.print(Data);
+gsm.print("\r"); //The text for the message delay(1000);
+gsm.write(0x1A); //Equivalent to sending Ctrl+Z digitalWrite(13,LOW);
+}
+///////////////////////////////// void setup()
+{
+pinMode(13,OUTPUT); pinMode(motor,OUTPUT); digitalWrite(13,LOW); digitalWrite(motor,HIGH); pinMode(button,INPUT_PULLUP); gsm.begin(9600); Serial.begin(9600);
+dht.begin();
+}
+//////////////////////////////////////////////////// void loop()
+{
+float t = dht.readTemperature(); a = analogRead(A0); digitalWrite(motor,LOW); Serial.println(t); if(digitalRead(button)==LOW){
+digitalWrite(motor,HIGH); Serial.println("Sending SMS"); digitalWrite(13,HIGH); 
+SendSMS("vehicle accident detected http://maps.google.com/maps?saddr=17.594461,78.441228");
+delay(1000);
+}
+if(t>40){
+Serial.println("Sending SMS"); digitalWrite(motor,HIGH);
+digitalWrite(13,HIGH);
+SendSMS("High temperature detected in vehicle."); delay(1000);
+}
+if(a>950){
+digitalWrite(motor,HIGH); Serial.println("Sending SMS"); digitalWrite(13,HIGH);
+SendSMS("High alcohol detected in vehicle."); delay(1000);
+}
+}
